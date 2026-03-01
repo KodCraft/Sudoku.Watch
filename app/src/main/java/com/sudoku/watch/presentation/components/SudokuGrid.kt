@@ -86,7 +86,7 @@ fun SudokuGrid(
                 if (value == 0 && notes.isNotEmpty()) {
                     val noteSize = cellSize / 3f
                     val noteStyle = TextStyle(
-                        fontSize = (noteSize * 0.6f).toSp(),
+                        fontSize = (noteSize * 0.7f).toSp(),
                         color = SudokuColors.NoteText
                     )
                     for (note in notes) {
@@ -185,7 +185,7 @@ private fun DrawScope.drawGridLines(cellSize: Float) {
     // Thin lines
     for (i in 0..9) {
         val pos = i * cellSize
-        val strokeWidth = if (i % 3 == 0) 3f else 1f
+        val strokeWidth = if (i % 3 == 0) 3f else 1.5f
         val color = if (i % 3 == 0) SudokuColors.ThickLine else SudokuColors.ThinLine
 
         // Horizontal

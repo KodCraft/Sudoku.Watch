@@ -18,7 +18,8 @@ data class GameUiState(
     val showErrors: Boolean = true,
     val elapsedSeconds: Long = 0,
     val isTimerRunning: Boolean = false,
-    val showCongrats: Boolean = false
+    val showCongrats: Boolean = false,
+    val errorsMade: Int = 0
 )
 
 enum class Screen {
@@ -41,7 +42,8 @@ class SudokuViewModel : ViewModel() {
                 isNoteMode = false,
                 elapsedSeconds = 0,
                 isTimerRunning = true,
-                showCongrats = false
+                showCongrats = false,
+                errorsMade = 0
             )
         }
     }
@@ -82,8 +84,14 @@ class SudokuViewModel : ViewModel() {
             game.notes[row][col].clear()
 
             val updatedGame = game.copy(board = newBoard)
+
+            // Track errors
+            val isError = number != game.solution[row][col]
             _uiState.update {
-                it.copy(game = updatedGame)
+                it.copy(
+                    game = updatedGame,
+                    errorsMade = if (isError) it.errorsMade + 1 else it.errorsMade
+                )
             }
 
             // Check if solved

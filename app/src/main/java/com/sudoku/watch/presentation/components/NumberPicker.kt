@@ -23,6 +23,7 @@ fun NumberPicker(
     onClear: () -> Unit,
     isNoteMode: Boolean,
     onToggleNoteMode: () -> Unit,
+    enabled: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -32,10 +33,10 @@ fun NumberPicker(
                 color = SudokuColors.PickerBackground,
                 shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
             )
-            .padding(4.dp),
+            .padding(horizontal = 2.dp, vertical = 4.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Top row: 1-5
+        // Row 1: 1-5
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
@@ -44,6 +45,7 @@ fun NumberPicker(
                 NumberButton(
                     number = num,
                     isNoteMode = isNoteMode,
+                    enabled = enabled,
                     onClick = { onNumberSelected(num) }
                 )
             }
@@ -51,41 +53,33 @@ fun NumberPicker(
 
         Spacer(modifier = Modifier.height(2.dp))
 
-        // Bottom row: 6-9 + controls
+        // Row 2: 6-9, note toggle, clear
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
         ) {
             for (num in 6..9) {
                 NumberButton(
                     number = num,
                     isNoteMode = isNoteMode,
+                    enabled = enabled,
                     onClick = { onNumberSelected(num) }
                 )
             }
-            // Clear button
+            // Note mode toggle (compact)
+            ActionButton(
+                text = if (isNoteMode) "N" else "N",
+                color = if (isNoteMode) SudokuColors.NoteModeActive else SudokuColors.NoteModeInactive,
+                enabled = true,
+                onClick = onToggleNoteMode
+            )
+            // Clear
             ActionButton(
                 text = "✕",
                 color = SudokuColors.ClearButton,
+                enabled = enabled,
                 onClick = onClear
-            )
-        }
-
-        Spacer(modifier = Modifier.height(2.dp))
-
-        // Note mode toggle
-        Row(
-            modifier = Modifier
-                .clip(RoundedCornerShape(8.dp))
-                .background(if (isNoteMode) SudokuColors.NoteModeActive else SudokuColors.NoteModeInactive)
-                .clickable { onToggleNoteMode() }
-                .padding(horizontal = 12.dp, vertical = 4.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = if (isNoteMode) "📝 Notes ON" else "✏️ Notes OFF",
-                fontSize = 10.sp,
-                color = Color.White
             )
         }
     }
@@ -95,23 +89,36 @@ fun NumberPicker(
 private fun NumberButton(
     number: Int,
     isNoteMode: Boolean,
+    enabled: Boolean,
     onClick: () -> Unit
 ) {
+    val bgColor = when {
+        !enabled -> SudokuColors.ButtonDisabled
+        isNoteMode -> SudokuColors.NoteNumberButton
+        else -> SudokuColors.NumberButton
+    }
     Box(
         modifier = Modifier
-            .size(28.dp)
+            .size(44.dp)
             .clip(CircleShape)
-            .background(if (isNoteMode) SudokuColors.NoteNumberButton else SudokuColors.NumberButton)
-            .clickable { onClick() },
+            .clickable(enabled = enabled) { onClick() },
         contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = number.toString(),
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.White,
-            textAlign = TextAlign.Center
-        )
+        Box(
+            modifier = Modifier
+                .size(36.dp)
+                .clip(CircleShape)
+                .background(bgColor),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = number.toString(),
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Bold,
+                color = if (enabled) Color.White else Color.White.copy(alpha = 0.4f),
+                textAlign = TextAlign.Center
+            )
+        }
     }
 }
 
@@ -119,21 +126,30 @@ private fun NumberButton(
 private fun ActionButton(
     text: String,
     color: Color,
+    enabled: Boolean,
     onClick: () -> Unit
 ) {
     Box(
         modifier = Modifier
-            .size(28.dp)
+            .size(44.dp)
             .clip(CircleShape)
-            .background(color)
-            .clickable { onClick() },
+            .clickable(enabled = enabled) { onClick() },
         contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = text,
-            fontSize = 14.sp,
-            color = Color.White,
-            textAlign = TextAlign.Center
-        )
+        Box(
+            modifier = Modifier
+                .size(36.dp)
+                .clip(CircleShape)
+                .background(if (enabled) color else SudokuColors.ButtonDisabled),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = text,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Bold,
+                color = if (enabled) Color.White else Color.White.copy(alpha = 0.4f),
+                textAlign = TextAlign.Center
+            )
+        }
     }
 }

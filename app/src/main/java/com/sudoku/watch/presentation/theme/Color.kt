@@ -22,7 +22,7 @@ object SudokuColors {
     // Numbers
     val OriginalNumber = Color(0xFFFFFFFF)
     val UserNumber = Color(0xFF64B5F6)
-    val NoteText = Color(0xFF90A4AE)
+    val NoteText = Color(0xFFB0BEC5)
     val Error = Color(0xFFFF5252)
 
     // Number picker
@@ -30,6 +30,7 @@ object SudokuColors {
     val NumberButton = Color(0xFF3D5AFE)
     val NoteNumberButton = Color(0xFF7C4DFF)
     val ClearButton = Color(0xFFFF5252)
+    val ButtonDisabled = Color(0xFF2A2A3E)
 
     // Note mode
     val NoteModeActive = Color(0xFF7C4DFF)
@@ -39,7 +40,9 @@ object SudokuColors {
     val Background = Color(0xFF0A0A1A)
     val TextPrimary = Color(0xFFFFFFFF)
     val TextSecondary = Color(0xFFB0BEC5)
+    val TimerText = Color(0xFFCFD8DC)
     val Success = Color(0xFF00E676)
+    val CongratsGold = Color(0xFFFFD54F)
     val ButtonPrimary = Color(0xFF3D5AFE)
     val ButtonDanger = Color(0xFFFF5252)
 }
