@@ -31,9 +31,9 @@ fun NumberPicker(
             .fillMaxWidth()
             .background(
                 color = SudokuColors.PickerBackground,
-                shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+                shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)
             )
-            .padding(horizontal = 2.dp, vertical = 4.dp),
+            .padding(horizontal = 2.dp, vertical = 2.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Row 1: 1-5
@@ -51,7 +51,7 @@ fun NumberPicker(
             }
         }
 
-        Spacer(modifier = Modifier.height(2.dp))
+        Spacer(modifier = Modifier.height(1.dp))
 
         // Row 2: 6-9, note toggle, clear
         Row(
@@ -69,7 +69,7 @@ fun NumberPicker(
             }
             // Note mode toggle (compact)
             ActionButton(
-                text = if (isNoteMode) "N" else "N",
+                text = "N",
                 color = if (isNoteMode) SudokuColors.NoteModeActive else SudokuColors.NoteModeInactive,
                 enabled = true,
                 onClick = onToggleNoteMode
@@ -99,26 +99,19 @@ private fun NumberButton(
     }
     Box(
         modifier = Modifier
-            .size(44.dp)
+            .size(32.dp)
             .clip(CircleShape)
+            .background(bgColor)
             .clickable(enabled = enabled) { onClick() },
         contentAlignment = Alignment.Center
     ) {
-        Box(
-            modifier = Modifier
-                .size(36.dp)
-                .clip(CircleShape)
-                .background(bgColor),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = number.toString(),
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Bold,
-                color = if (enabled) Color.White else Color.White.copy(alpha = 0.4f),
-                textAlign = TextAlign.Center
-            )
-        }
+        Text(
+            text = number.toString(),
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold,
+            color = if (enabled) Color.White else Color.White.copy(alpha = 0.4f),
+            textAlign = TextAlign.Center
+        )
     }
 }
 
@@ -131,25 +124,18 @@ private fun ActionButton(
 ) {
     Box(
         modifier = Modifier
-            .size(44.dp)
+            .size(32.dp)
             .clip(CircleShape)
+            .background(if (enabled) color else SudokuColors.ButtonDisabled)
             .clickable(enabled = enabled) { onClick() },
         contentAlignment = Alignment.Center
     ) {
-        Box(
-            modifier = Modifier
-                .size(36.dp)
-                .clip(CircleShape)
-                .background(if (enabled) color else SudokuColors.ButtonDisabled),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = text,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Bold,
-                color = if (enabled) Color.White else Color.White.copy(alpha = 0.4f),
-                textAlign = TextAlign.Center
-            )
-        }
+        Text(
+            text = text,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold,
+            color = if (enabled) Color.White else Color.White.copy(alpha = 0.4f),
+            textAlign = TextAlign.Center
+        )
     }
 }

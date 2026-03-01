@@ -40,11 +40,11 @@ fun MenuScreen(
         item {
             Text(
                 text = "SUDOKU",
-                fontSize = 22.sp,
+                fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color = SudokuColors.TextPrimary,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.padding(bottom = 10.dp)
+                modifier = Modifier.padding(bottom = 8.dp)
             )
         }
 
@@ -66,10 +66,10 @@ private fun DifficultyButton(
 ) {
     Box(
         modifier = Modifier
-            .fillMaxWidth(0.7f)
-            .padding(vertical = 4.dp)
-            .height(44.dp)
-            .clip(RoundedCornerShape(22.dp))
+            .fillMaxWidth(0.65f)
+            .padding(vertical = 3.dp)
+            .height(36.dp)
+            .clip(RoundedCornerShape(18.dp))
             .background(
                 when (difficulty) {
                     Difficulty.EASY -> SudokuColors.Success.copy(alpha = 0.8f)
@@ -82,7 +82,7 @@ private fun DifficultyButton(
     ) {
         Text(
             text = difficulty.label,
-            fontSize = 15.sp,
+            fontSize = 14.sp,
             fontWeight = FontWeight.SemiBold,
             color = SudokuColors.TextPrimary,
             textAlign = TextAlign.Center
@@ -119,9 +119,9 @@ fun GameScreen(
         // Timer display
         Text(
             text = formatTime(state.elapsedSeconds),
-            fontSize = 13.sp,
+            fontSize = 12.sp,
             color = SudokuColors.TimerText,
-            modifier = Modifier.padding(top = 2.dp, bottom = 1.dp)
+            modifier = Modifier.padding(top = 1.dp)
         )
 
         // Sudoku grid
@@ -133,7 +133,7 @@ fun GameScreen(
             onCellSelected = { row, col -> viewModel.selectCell(row, col) },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 8.dp)
+                .padding(horizontal = 4.dp)
                 .weight(1f)
         )
 
@@ -169,50 +169,46 @@ fun CongratsScreen(
         item {
             Text(
                 text = "Solved!",
-                fontSize = 20.sp,
+                fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 color = SudokuColors.CongratsGold
             )
         }
         item {
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.height(4.dp))
         }
         item {
-            // Time
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = formatTime(elapsedSeconds),
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = SudokuColors.TextPrimary
-                )
-            }
+            Text(
+                text = formatTime(elapsedSeconds),
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Medium,
+                color = SudokuColors.TextPrimary
+            )
         }
         item {
-            // Difficulty + errors
             Text(
                 text = "${difficulty?.label ?: ""} · ${if (errorsMade == 0) "No errors" else "$errorsMade error${if (errorsMade > 1) "s" else ""}"}",
-                fontSize = 12.sp,
+                fontSize = 11.sp,
                 color = SudokuColors.TextSecondary,
                 modifier = Modifier.padding(top = 2.dp)
             )
         }
         item {
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(8.dp))
         }
         item {
             Box(
                 modifier = Modifier
-                    .fillMaxWidth(0.65f)
-                    .height(44.dp)
-                    .clip(RoundedCornerShape(22.dp))
+                    .fillMaxWidth(0.6f)
+                    .height(36.dp)
+                    .clip(RoundedCornerShape(18.dp))
                     .background(SudokuColors.ButtonPrimary)
                     .clickable { onNewGame() },
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = "New Game",
-                    fontSize = 14.sp,
+                    fontSize = 13.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = SudokuColors.TextPrimary
                 )
@@ -221,17 +217,17 @@ fun CongratsScreen(
         item {
             Box(
                 modifier = Modifier
-                    .fillMaxWidth(0.65f)
-                    .padding(top = 6.dp)
-                    .height(44.dp)
-                    .clip(RoundedCornerShape(22.dp))
+                    .fillMaxWidth(0.6f)
+                    .padding(top = 4.dp)
+                    .height(36.dp)
+                    .clip(RoundedCornerShape(18.dp))
                     .background(SudokuColors.NoteModeInactive)
                     .clickable { onMenu() },
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = "Menu",
-                    fontSize = 14.sp,
+                    fontSize = 13.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = SudokuColors.TextPrimary
                 )
