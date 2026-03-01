@@ -109,7 +109,8 @@ fun GameScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(SudokuColors.Background),
+            .background(SudokuColors.Background)
+            .padding(horizontal = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Timer display
@@ -117,10 +118,10 @@ fun GameScreen(
             text = formatTime(state.elapsedSeconds),
             fontSize = 12.sp,
             color = SudokuColors.TimerText,
-            modifier = Modifier.padding(top = 1.dp)
+            modifier = Modifier.padding(top = 6.dp)
         )
 
-        // Sudoku grid — fills all remaining space
+        // Sudoku grid
         SudokuGrid(
             game = game,
             selectedRow = state.selectedRow,
@@ -131,7 +132,7 @@ fun GameScreen(
             onCellLongPress = { row, col -> viewModel.onCellLongPress(row, col) },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 4.dp)
+                .padding(vertical = 4.dp)
                 .weight(1f)
         )
     }
