@@ -3,47 +3,37 @@ package com.sudoku.watch.presentation.theme
 import androidx.compose.ui.graphics.Color
 
 /**
- * Color palette optimized for AMOLED watch displays.
- * Dark theme with high-contrast elements for small screens.
+ * Clean light color palette for watch Sudoku.
  */
 object SudokuColors {
     // Grid
-    val GridBackground = Color(0xFF1A1A2E)
-    val ThickLine = Color(0xFFE0E0E0)
-    val ThinLine = Color(0xFF4A4A5A)
+    val GridBackground = Color(0xFFFAFAFA)
+    val ThickLine = Color(0xFF37474F)
+    val ThinLine = Color(0xFFCFD8DC)
 
     // Cell highlights
-    val SelectedCell = Color(0xFF3D5AFE).copy(alpha = 0.5f)
-    val InputModeBorder = Color(0xFFFFD54F)
-    val HighlightLine = Color(0xFF1E3A5F).copy(alpha = 0.25f)
-    val HighlightBox = Color(0xFF1E3A5F).copy(alpha = 0.15f)
-    val SameNumber = Color(0xFF3D5AFE).copy(alpha = 0.2f)
-    val ErrorBackground = Color(0xFFFF1744).copy(alpha = 0.15f)
+    val SelectedCell = Color(0xFF90CAF9).copy(alpha = 0.55f)
+    val InputModeBorder = Color(0xFFFFA726)
+    val HighlightLine = Color(0xFFBBDEFB).copy(alpha = 0.45f)
+    val HighlightBox = Color(0xFFBBDEFB).copy(alpha = 0.25f)
+    val SameNumber = Color(0xFF90CAF9).copy(alpha = 0.35f)
+    val ErrorBackground = Color(0xFFFFCDD2).copy(alpha = 0.6f)
 
     // Numbers
-    val OriginalNumber = Color(0xFFFFFFFF)
-    val UserNumber = Color(0xFF64B5F6)
-    val NoteText = Color(0xFFB0BEC5)
-    val Error = Color(0xFFFF5252)
-
-    // Number picker
-    val PickerBackground = Color(0xFF16213E)
-    val NumberButton = Color(0xFF3D5AFE)
-    val NoteNumberButton = Color(0xFF7C4DFF)
-    val ClearButton = Color(0xFFFF5252)
-    val ButtonDisabled = Color(0xFF2A2A3E)
-
-    // Note mode
-    val NoteModeActive = Color(0xFF7C4DFF)
-    val NoteModeInactive = Color(0xFF37474F)
+    val OriginalNumber = Color(0xFF263238)
+    val UserNumber = Color(0xFF1565C0)
+    val NoteText = Color(0xFF78909C)
+    val Error = Color(0xFFD32F2F)
 
     // UI
-    val Background = Color(0xFF0A0A1A)
-    val TextPrimary = Color(0xFFFFFFFF)
-    val TextSecondary = Color(0xFFB0BEC5)
-    val TimerText = Color(0xFFCFD8DC)
-    val Success = Color(0xFF00E676)
-    val CongratsGold = Color(0xFFFFD54F)
-    val ButtonPrimary = Color(0xFF3D5AFE)
-    val ButtonDanger = Color(0xFFFF5252)
+    val Background = Color(0xFFFFFFFF)
+    val TextPrimary = Color(0xFF212121)
+    val TextSecondary = Color(0xFF757575)
+    val TimerText = Color(0xFF546E7A)
+    val Success = Color(0xFF43A047)
+    val CongratsGold = Color(0xFFF57C00)
+    val ButtonPrimary = Color(0xFF1E88E5)
+    val ButtonDanger = Color(0xFFE53935)
+    val ButtonSecondary = Color(0xFFECEFF1)
+    val ButtonText = Color(0xFFFFFFFF)
 }

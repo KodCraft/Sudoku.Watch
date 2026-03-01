@@ -71,7 +71,7 @@ private fun DifficultyButton(
             .clip(RoundedCornerShape(18.dp))
             .background(
                 when (difficulty) {
-                    Difficulty.EASY -> SudokuColors.Success.copy(alpha = 0.8f)
+                    Difficulty.EASY -> SudokuColors.Success
                     Difficulty.MEDIUM -> SudokuColors.ButtonPrimary
                     Difficulty.HARD -> SudokuColors.ButtonDanger
                 }
@@ -83,7 +83,7 @@ private fun DifficultyButton(
             text = difficulty.label,
             fontSize = 14.sp,
             fontWeight = FontWeight.SemiBold,
-            color = SudokuColors.TextPrimary,
+            color = SudokuColors.ButtonText,
             textAlign = TextAlign.Center
         )
     }
@@ -200,7 +200,7 @@ fun CongratsScreen(
                     text = "New Game",
                     fontSize = 13.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = SudokuColors.TextPrimary
+                    color = SudokuColors.ButtonText
                 )
             }
         }
@@ -211,7 +211,7 @@ fun CongratsScreen(
                     .padding(top = 4.dp)
                     .height(36.dp)
                     .clip(RoundedCornerShape(18.dp))
-                    .background(SudokuColors.NoteModeInactive)
+                    .background(SudokuColors.ButtonSecondary)
                     .clickable { onMenu() },
                 contentAlignment = Alignment.Center
             ) {
