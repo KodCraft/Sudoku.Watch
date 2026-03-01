@@ -14,6 +14,7 @@ object SudokuColors {
 
     // Cell highlights
     val SelectedCell = Color(0xFF3D5AFE).copy(alpha = 0.5f)
+    val InputModeBorder = Color(0xFFFFD54F)
     val HighlightLine = Color(0xFF1E3A5F).copy(alpha = 0.25f)
     val HighlightBox = Color(0xFF1E3A5F).copy(alpha = 0.15f)
     val SameNumber = Color(0xFF3D5AFE).copy(alpha = 0.2f)

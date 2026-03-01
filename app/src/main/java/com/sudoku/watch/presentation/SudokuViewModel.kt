@@ -14,7 +14,7 @@ data class GameUiState(
     val game: SudokuGame? = null,
     val selectedRow: Int = -1,
     val selectedCol: Int = -1,
-    val isNoteMode: Boolean = false,
+    val isInputMode: Boolean = false,
     val showErrors: Boolean = true,
     val elapsedSeconds: Long = 0,
     val isTimerRunning: Boolean = false,
@@ -39,7 +39,7 @@ class SudokuViewModel : ViewModel() {
                 game = game,
                 selectedRow = -1,
                 selectedCol = -1,
-                isNoteMode = false,
+                isInputMode = false,
                 elapsedSeconds = 0,
                 isTimerRunning = true,
                 showCongrats = false,
@@ -48,90 +48,94 @@ class SudokuViewModel : ViewModel() {
         }
     }
 
-    fun selectCell(row: Int, col: Int) {
-        _uiState.update { it.copy(selectedRow = row, selectedCol = col) }
-    }
-
-    fun enterNumber(number: Int) {
+    /**
+     * Tap on a cell:
+     * - If in input mode on the SAME cell → increment number
+     * - Otherwise → just select cell (exit input mode)
+     */
+    fun onCellTap(row: Int, col: Int) {
         val state = _uiState.value
-        val game = state.game ?: return
-        val row = state.selectedRow
-        val col = state.selectedCol
-
-        if (row < 0 || col < 0) return
-        if (game.isOriginalCell(row, col)) return
-
-        if (state.isNoteMode) {
-            // Toggle note
-            val notes = game.notes[row][col]
-            if (number in notes) {
-                notes.remove(number)
-            } else {
-                notes.add(number)
-            }
-            // Force recomposition by creating new game reference
-            val newBoard = game.copyBoard()
-            _uiState.update {
-                it.copy(
-                    game = game.copy(board = newBoard)
-                )
-            }
+        if (state.isInputMode && row == state.selectedRow && col == state.selectedCol) {
+            incrementCell()
         } else {
-            // Place number
-            val newBoard = game.copyBoard()
-            newBoard[row][col] = number
-            // Clear notes for this cell
-            game.notes[row][col].clear()
-
-            val updatedGame = game.copy(board = newBoard)
-
-            // Track errors
-            val isError = number != game.solution[row][col]
             _uiState.update {
-                it.copy(
-                    game = updatedGame,
-                    errorsMade = if (isError) it.errorsMade + 1 else it.errorsMade
-                )
-            }
-
-            // Check if solved
-            if (updatedGame.isSolved) {
-                _uiState.update {
-                    it.copy(
-                        screen = Screen.CONGRATS,
-                        isTimerRunning = false,
-                        showCongrats = true
-                    )
-                }
+                it.copy(selectedRow = row, selectedCol = col, isInputMode = false)
             }
         }
     }
 
-    fun clearCell() {
-        val state = _uiState.value
-        val game = state.game ?: return
-        val row = state.selectedRow
-        val col = state.selectedCol
-
-        if (row < 0 || col < 0) return
+    /**
+     * Long press on a cell → enter input mode.
+     * Places 1 if the cell is empty, otherwise keeps current value for incrementing.
+     */
+    fun onCellLongPress(row: Int, col: Int) {
+        val game = _uiState.value.game ?: return
         if (game.isOriginalCell(row, col)) return
-
-        val newBoard = game.copyBoard()
-        newBoard[row][col] = 0
-        game.notes[row][col].clear()
 
         _uiState.update {
-            it.copy(game = game.copy(board = newBoard))
+            it.copy(selectedRow = row, selectedCol = col, isInputMode = true)
+        }
+
+        // If cell is empty, place 1
+        if (game.board[row][col] == 0) {
+            placeNumber(row, col, 1)
         }
     }
 
-    fun toggleNoteMode() {
-        _uiState.update { it.copy(isNoteMode = !it.isNoteMode) }
+    /**
+     * Increment the current cell's value: 1→2→...→9→clear(0)→1→...
+     */
+    private fun incrementCell() {
+        val state = _uiState.value
+        val game = state.game ?: return
+        val row = state.selectedRow
+        val col = state.selectedCol
+        if (row < 0 || col < 0) return
+        if (game.isOriginalCell(row, col)) return
+
+        val current = game.board[row][col]
+        val next = if (current >= 9) 0 else current + 1
+
+        if (next == 0) {
+            // Clear the cell
+            val newBoard = game.copyBoard()
+            newBoard[row][col] = 0
+            _uiState.update { it.copy(game = game.copy(board = newBoard)) }
+        } else {
+            placeNumber(row, col, next)
+        }
+    }
+
+    private fun placeNumber(row: Int, col: Int, number: Int) {
+        val game = _uiState.value.game ?: return
+
+        val newBoard = game.copyBoard()
+        newBoard[row][col] = number
+        val updatedGame = game.copy(board = newBoard)
+
+        val isError = number != game.solution[row][col]
+        _uiState.update {
+            it.copy(
+                game = updatedGame,
+                errorsMade = if (isError) it.errorsMade + 1 else it.errorsMade
+            )
+        }
+
+        if (updatedGame.isSolved) {
+            _uiState.update {
+                it.copy(
+                    screen = Screen.CONGRATS,
+                    isTimerRunning = false,
+                    isInputMode = false,
+                    showCongrats = true
+                )
+            }
+        }
     }
 
     fun goToMenu() {
         _uiState.update {
-            GameUiState() // Reset to menu
+            GameUiState()
         }
     }
 

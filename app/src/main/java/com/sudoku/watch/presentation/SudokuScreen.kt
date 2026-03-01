@@ -16,7 +16,6 @@ import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.Text
 import com.sudoku.watch.game.Difficulty
-import com.sudoku.watch.presentation.components.NumberPicker
 import com.sudoku.watch.presentation.components.SudokuGrid
 import com.sudoku.watch.presentation.theme.SudokuColors
 import kotlinx.coroutines.delay
@@ -107,9 +106,6 @@ fun GameScreen(
         }
     }
 
-    val hasEditableSelection = state.selectedRow >= 0 && state.selectedCol >= 0 &&
-        !game.isOriginalCell(state.selectedRow, state.selectedCol)
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -124,26 +120,19 @@ fun GameScreen(
             modifier = Modifier.padding(top = 1.dp)
         )
 
-        // Sudoku grid
+        // Sudoku grid — fills all remaining space
         SudokuGrid(
             game = game,
             selectedRow = state.selectedRow,
             selectedCol = state.selectedCol,
+            isInputMode = state.isInputMode,
             highlightErrors = state.showErrors,
-            onCellSelected = { row, col -> viewModel.selectCell(row, col) },
+            onCellTap = { row, col -> viewModel.onCellTap(row, col) },
+            onCellLongPress = { row, col -> viewModel.onCellLongPress(row, col) },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 4.dp)
                 .weight(1f)
-        )
-
-        // Number picker — always visible, disabled when no editable cell selected
-        NumberPicker(
-            onNumberSelected = { viewModel.enterNumber(it) },
-            onClear = { viewModel.clearCell() },
-            isNoteMode = state.isNoteMode,
-            onToggleNoteMode = { viewModel.toggleNoteMode() },
-            enabled = hasEditableSelection
         )
     }
 }

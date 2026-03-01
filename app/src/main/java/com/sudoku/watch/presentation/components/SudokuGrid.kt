@@ -10,6 +10,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
@@ -24,8 +25,10 @@ fun SudokuGrid(
     game: SudokuGame,
     selectedRow: Int,
     selectedCol: Int,
+    isInputMode: Boolean,
     highlightErrors: Boolean,
-    onCellSelected: (row: Int, col: Int) -> Unit,
+    onCellTap: (row: Int, col: Int) -> Unit,
+    onCellLongPress: (row: Int, col: Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val textMeasurer = rememberTextMeasurer()
@@ -35,18 +38,26 @@ fun SudokuGrid(
             .fillMaxWidth()
             .aspectRatio(1f)
             .pointerInput(Unit) {
-                detectTapGestures { offset ->
-                    val cellSize = size.width / 9f
-                    val col = (offset.x / cellSize).toInt().coerceIn(0, 8)
-                    val row = (offset.y / cellSize).toInt().coerceIn(0, 8)
-                    onCellSelected(row, col)
-                }
+                detectTapGestures(
+                    onTap = { offset ->
+                        val cellSize = size.width / 9f
+                        val col = (offset.x / cellSize).toInt().coerceIn(0, 8)
+                        val row = (offset.y / cellSize).toInt().coerceIn(0, 8)
+                        onCellTap(row, col)
+                    },
+                    onLongPress = { offset ->
+                        val cellSize = size.width / 9f
+                        val col = (offset.x / cellSize).toInt().coerceIn(0, 8)
+                        val row = (offset.y / cellSize).toInt().coerceIn(0, 8)
+                        onCellLongPress(row, col)
+                    }
+                )
             }
     ) {
         val cellSize = size.width / 9f
 
         // Draw cell backgrounds
-        drawCellBackgrounds(game, selectedRow, selectedCol, cellSize, highlightErrors)
+        drawCellBackgrounds(game, selectedRow, selectedCol, isInputMode, cellSize, highlightErrors)
 
         // Draw grid lines
         drawGridLines(cellSize)
@@ -111,6 +122,7 @@ private fun DrawScope.drawCellBackgrounds(
     game: SudokuGame,
     selectedRow: Int,
     selectedCol: Int,
+    isInputMode: Boolean,
     cellSize: Float,
     highlightErrors: Boolean
 ) {
@@ -145,6 +157,15 @@ private fun DrawScope.drawCellBackgrounds(
             topLeft = Offset(selectedCol * cellSize, selectedRow * cellSize),
             size = Size(cellSize, cellSize)
         )
+        // Input mode border
+        if (isInputMode) {
+            drawRect(
+                color = SudokuColors.InputModeBorder,
+                topLeft = Offset(selectedCol * cellSize + 1f, selectedRow * cellSize + 1f),
+                size = Size(cellSize - 2f, cellSize - 2f),
+                style = Stroke(width = 3f)
+            )
+        }
     }
 
     // Highlight same numbers
@@ -182,17 +203,14 @@ private fun DrawScope.drawCellBackgrounds(
 }
 
 private fun DrawScope.drawGridLines(cellSize: Float) {
-    // Thin lines
     for (i in 0..9) {
         val pos = i * cellSize
         val strokeWidth = if (i % 3 == 0) 3f else 1.5f
         val color = if (i % 3 == 0) SudokuColors.ThickLine else SudokuColors.ThinLine
 
-        // Horizontal
         drawLine(color, Offset(0f, pos), Offset(size.width, pos), strokeWidth)
-        // Vertical
         drawLine(color, Offset(pos, 0f), Offset(pos, size.height), strokeWidth)
     }
 }
 
-private fun Float.toSp() = this.sp / 3.5f  // approximate density scaling for watch
+private fun Float.toSp() = this.sp / 3.5f
