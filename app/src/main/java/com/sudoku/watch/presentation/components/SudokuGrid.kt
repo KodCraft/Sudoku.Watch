@@ -1,16 +1,23 @@
 package com.sudoku.watch.presentation.components
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
@@ -19,6 +26,11 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.sp
 import com.sudoku.watch.game.SudokuGame
 import com.sudoku.watch.presentation.theme.SudokuColors
+import kotlinx.coroutines.launch
+
+private const val MAX_ZOOM = 2.5f
+private const val MIN_ZOOM = 1f
+private const val ZOOM_ANIM_MS = 300
 
 @Composable
 fun SudokuGrid(
@@ -32,26 +44,85 @@ fun SudokuGrid(
     modifier: Modifier = Modifier
 ) {
     val textMeasurer = rememberTextMeasurer()
+    val scope = rememberCoroutineScope()
+
+    // Zoom & pan animation state
+    val zoomAnim = remember { Animatable(MIN_ZOOM) }
+    val panXAnim = remember { Animatable(0f) }
+    val panYAnim = remember { Animatable(0f) }
+
+    val isZoomed = zoomAnim.value > MIN_ZOOM + 0.01f
 
     Canvas(
         modifier = modifier
             .fillMaxWidth()
             .aspectRatio(1f)
+            .clipToBounds()
+            // Gesture block 1: tap, double-tap, long-press
             .pointerInput(Unit) {
+                val canvasSize = size.width.toFloat()
                 detectTapGestures(
+                    onDoubleTap = { offset ->
+                        scope.launch {
+                            if (zoomAnim.value > MIN_ZOOM + 0.01f) {
+                                // Zoomed in → reset to 1×
+                                launch { zoomAnim.animateTo(MIN_ZOOM, tween(ZOOM_ANIM_MS)) }
+                                launch { panXAnim.animateTo(0f, tween(ZOOM_ANIM_MS)) }
+                                launch { panYAnim.animateTo(0f, tween(ZOOM_ANIM_MS)) }
+                            } else {
+                                // Zoom in centered on tap point
+                                val center = canvasSize / 2f
+                                val targetPanX = (center - offset.x) * (MAX_ZOOM - 1f)
+                                val targetPanY = (center - offset.y) * (MAX_ZOOM - 1f)
+                                val clamped = clampPan(targetPanX, targetPanY, MAX_ZOOM, canvasSize)
+                                launch { zoomAnim.animateTo(MAX_ZOOM, tween(ZOOM_ANIM_MS)) }
+                                launch { panXAnim.animateTo(clamped.first, tween(ZOOM_ANIM_MS)) }
+                                launch { panYAnim.animateTo(clamped.second, tween(ZOOM_ANIM_MS)) }
+                            }
+                        }
+                    },
                     onTap = { offset ->
-                        val cellSize = size.width / 9f
-                        val col = (offset.x / cellSize).toInt().coerceIn(0, 8)
-                        val row = (offset.y / cellSize).toInt().coerceIn(0, 8)
+                        val transformed = inverseTransform(
+                            offset, zoomAnim.value, panXAnim.value, panYAnim.value, canvasSize
+                        )
+                        val cellSize = canvasSize / 9f
+                        val col = (transformed.x / cellSize).toInt().coerceIn(0, 8)
+                        val row = (transformed.y / cellSize).toInt().coerceIn(0, 8)
                         onCellTap(row, col)
                     },
                     onLongPress = { offset ->
-                        val cellSize = size.width / 9f
-                        val col = (offset.x / cellSize).toInt().coerceIn(0, 8)
-                        val row = (offset.y / cellSize).toInt().coerceIn(0, 8)
+                        val transformed = inverseTransform(
+                            offset, zoomAnim.value, panXAnim.value, panYAnim.value, canvasSize
+                        )
+                        val cellSize = canvasSize / 9f
+                        val col = (transformed.x / cellSize).toInt().coerceIn(0, 8)
+                        val row = (transformed.y / cellSize).toInt().coerceIn(0, 8)
                         onCellLongPress(row, col)
                     }
                 )
+            }
+            // Gesture block 2: drag to pan (only when zoomed)
+            .pointerInput(isZoomed) {
+                if (isZoomed) {
+                    val canvasSize = size.width.toFloat()
+                    detectDragGestures { change, dragAmount ->
+                        change.consume()
+                        scope.launch {
+                            val newX = panXAnim.value + dragAmount.x
+                            val newY = panYAnim.value + dragAmount.y
+                            val clamped = clampPan(newX, newY, zoomAnim.value, canvasSize)
+                            panXAnim.snapTo(clamped.first)
+                            panYAnim.snapTo(clamped.second)
+                        }
+                    }
+                }
+            }
+            // GPU-accelerated transform
+            .graphicsLayer {
+                scaleX = zoomAnim.value
+                scaleY = zoomAnim.value
+                translationX = panXAnim.value
+                translationY = panYAnim.value
             }
     ) {
         val cellSize = size.width / 9f
@@ -117,6 +188,45 @@ fun SudokuGrid(
         }
     }
 }
+
+// ─── Zoom/Pan Helpers ───
+
+/**
+ * Inverse-transform a pointer position back to canvas coordinates.
+ * graphicsLayer scales around center, so: screenPos = (canvasPos - center) * zoom + center + pan
+ * Solving for canvasPos: canvasPos = (screenPos - center - pan) / zoom + center
+ */
+private fun inverseTransform(
+    pointer: Offset,
+    zoom: Float,
+    panX: Float,
+    panY: Float,
+    canvasSize: Float
+): Offset {
+    val center = canvasSize / 2f
+    return Offset(
+        x = (pointer.x - center - panX) / zoom + center,
+        y = (pointer.y - center - panY) / zoom + center
+    )
+}
+
+/**
+ * Clamp pan so the grid edges stay visible within the viewport.
+ */
+private fun clampPan(
+    panX: Float,
+    panY: Float,
+    zoom: Float,
+    canvasSize: Float
+): Pair<Float, Float> {
+    val maxPan = canvasSize * (zoom - 1f) / 2f
+    return Pair(
+        panX.coerceIn(-maxPan, maxPan),
+        panY.coerceIn(-maxPan, maxPan)
+    )
+}
+
+// ─── Drawing Functions ───
 
 private fun DrawScope.drawCellBackgrounds(
     game: SudokuGame,
