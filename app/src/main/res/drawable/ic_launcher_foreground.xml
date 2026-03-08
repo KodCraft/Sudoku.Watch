@@ -5,29 +5,35 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
     <!-- 3x3 grid representing Sudoku -->
+    <!-- Grid background -->
+    <path
+        android:fillColor="#F5F5F5"
+        android:pathData="M30,30h48v48h-48z" />
     <!-- Outer border -->
     <path
-        android:strokeColor="#E0E0E0"
-        android:strokeWidth="2"
+        android:strokeColor="#37474F"
+        android:strokeWidth="2.5"
         android:pathData="M30,30h48v48h-48z" />
-    <!-- Inner grid lines -->
-    <path
-        android:strokeColor="#4A4A5A"
-        android:strokeWidth="0.8"
-        android:pathData="M46,30v48M62,30v48M30,46h48M30,62h48" />
     <!-- Thick 3x3 box lines -->
     <path
-        android:strokeColor="#E0E0E0"
+        android:strokeColor="#37474F"
         android:strokeWidth="2"
-        android:pathData="M30,46h48M30,62h48M46,30v48M62,30v48" />
-    <!-- Sample numbers -->
+        android:pathData="M46,30v48M62,30v48M30,46h48M30,62h48" />
+    <!-- Thin inner grid lines -->
     <path
-        android:fillColor="#3D5AFE"
-        android:pathData="M36,41.5a1,1,0,0,1,0,-2l2,0l0,-3l-1.5,1a1,1,0,0,1,-1,-1.5l2.5,-2l1.5,0l0,5.5l1.5,0a1,1,0,0,1,0,2z" />
+        android:strokeColor="#CFD8DC"
+        android:strokeWidth="0.8"
+        android:pathData="M38,30v48M54,30v48M70,30v48M30,38h48M30,54h48M30,70h48" />
+    <!-- Numbers: "5" top-left area -->
     <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M53,55.5l5,0a1,1,0,0,1,0,2l-7,0l0,-1.5l4.5,-3.5a1.2,1.2,0,0,0,-1,-2l-2,0a1,1,0,0,1,0,-2l3,0a3,3,0,0,1,0.5,5.5z" />
+        android:fillColor="#263238"
+        android:pathData="M35,43l5,0a0.8,0.8,0,0,1,0,1.6l-3.2,0l0,1.2a2,2,0,0,1,1.2,-0.4a2.2,2.2,0,0,1,0,4.4l-1.5,0a0.8,0.8,0,0,1,0,-1.6l1.5,0a0.6,0.6,0,0,0,0,-1.2a0.6,0.6,0,0,0,-0.6,0.4a0.8,0.8,0,0,1,-1.4,-0.6z" />
+    <!-- "3" center -->
     <path
-        android:fillColor="#64B5F6"
-        android:pathData="M67,41.5a3,3,0,0,1,-3,-3l0,0a1,1,0,0,1,2,0a1,1,0,0,0,2,0l0,-0.5a1,1,0,0,0,-2,0a1,1,0,0,1,-2,0a3,3,0,0,1,6,0l0,0.5a3,3,0,0,1,-3,3z" />
+        android:fillColor="#1565C0"
+        android:pathData="M51,52a2.2,2.2,0,0,1,2.2,-2.2l1,0a0.8,0.8,0,0,1,0,1.6l-1,0a0.6,0.6,0,0,0,0,1.2l0.5,0a0.8,0.8,0,0,1,0,1.6l-0.5,0a0.6,0.6,0,0,0,0,1.2l1,0a0.8,0.8,0,0,1,0,1.6l-1,0a2.2,2.2,0,0,1,-2.2,-2.2z" />
+    <!-- "7" bottom-right area -->
+    <path
+        android:fillColor="#263238"
+        android:pathData="M65,68l4,0a0.8,0.8,0,0,1,0.6,1.4l-3,4a0.8,0.8,0,0,1,-1.4,-0.8l2,-2.6l-2.2,0a0.8,0.8,0,0,1,0,-1.6z" />
 </vector>
