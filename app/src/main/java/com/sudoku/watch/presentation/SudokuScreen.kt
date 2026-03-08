@@ -1,18 +1,26 @@
 package com.sudoku.watch.presentation
 
+import android.os.VibrationEffect
+import android.os.Vibrator
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.getSystemService
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.Text
@@ -109,7 +117,37 @@ fun GameScreen(
         }
     }
 
-    GameScreenContent(state, game, { row, col -> viewModel.onCellTap(row, col) } ,{ row, col -> viewModel.onCellLongPress(row, col) })
+    val haptic = LocalHapticFeedback.current
+    val vibrator = LocalContext.current.getSystemService<Vibrator>()
+
+    // Vibrate on error
+    LaunchedEffect(state.lastMoveWasError, state.errorsMade) {
+        if (state.lastMoveWasError) {
+            vibrator?.vibrate(VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE))
+        }
+    }
+
+    // Vibrate on solve
+    LaunchedEffect(state.screen) {
+        if (state.screen == Screen.CONGRATS) {
+            vibrator?.vibrate(VibrationEffect.createWaveform(longArrayOf(0, 50, 80, 50, 80, 120), -1))
+        }
+    }
+
+    GameScreenContent(
+        state = state,
+        game = game,
+        onCellTap = { row, col ->
+            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+            viewModel.onCellTap(row, col)
+        },
+        onCellLongPress = { row, col ->
+            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+            viewModel.onCellLongPress(row, col)
+        },
+        onUndo = { viewModel.undoMove() },
+        onReset = { viewModel.resetPuzzle() }
+    )
 }
 
 @Composable
@@ -117,14 +155,97 @@ private fun GameScreenContent(
     state: GameUiState,
     game: SudokuGame,
     onCellTap: (Int, Int) -> Unit,
-    onCellLongPress: (Int, Int) -> Unit
+    onCellLongPress: (Int, Int) -> Unit,
+    onUndo: () -> Unit,
+    onReset: () -> Unit
 ) {
-    Box(
+    var showResetConfirm by remember { mutableStateOf(false) }
+
+    if (showResetConfirm) {
+        Dialog(onDismissRequest = { showResetConfirm = false }) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth(0.85f)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(SudokuColors.Background)
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Reset puzzle?",
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = SudokuColors.TextPrimary,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "All progress will be lost",
+                    fontSize = 11.sp,
+                    color = SudokuColors.TextSecondary,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(32.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(SudokuColors.ButtonSecondary)
+                            .clickable { showResetConfirm = false },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "Cancel",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = SudokuColors.TextPrimary
+                        )
+                    }
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(32.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(SudokuColors.ButtonDanger)
+                            .clickable {
+                                showResetConfirm = false
+                                onReset()
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "Reset",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = SudokuColors.ButtonText
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    Column(
         modifier = Modifier
             .fillMaxSize()
             .background(SudokuColors.Background),
-        contentAlignment = Alignment.Center
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
+        // Timer
+        Text(
+            text = formatTime(state.elapsedSeconds),
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Medium,
+            color = SudokuColors.TimerText,
+            textAlign = TextAlign.Center
+        )
+
+        // Grid
         SudokuGrid(
             game = game,
             selectedRow = state.selectedRow,
@@ -135,8 +256,49 @@ private fun GameScreenContent(
             onCellLongPress = { row, col -> onCellLongPress(row, col) },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(36.dp)
+                .padding(horizontal = 30.dp)
         )
+
+        // Action buttons
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.padding(top = 2.dp)
+        ) {
+            // Undo
+            Box(
+                modifier = Modifier
+                    .size(28.dp)
+                    .clip(CircleShape)
+                    .background(
+                        if (state.canUndo) SudokuColors.ButtonSecondary
+                        else SudokuColors.ButtonSecondary.copy(alpha = 0.4f)
+                    )
+                    .then(if (state.canUndo) Modifier.clickable { onUndo() } else Modifier),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "\u21A9",
+                    fontSize = 14.sp,
+                    color = if (state.canUndo) SudokuColors.TextPrimary
+                    else SudokuColors.TextSecondary.copy(alpha = 0.5f)
+                )
+            }
+            // Reset
+            Box(
+                modifier = Modifier
+                    .size(28.dp)
+                    .clip(CircleShape)
+                    .background(SudokuColors.ButtonSecondary)
+                    .clickable { showResetConfirm = true },
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "\u21BB",
+                    fontSize = 14.sp,
+                    color = SudokuColors.TextPrimary
+                )
+            }
+        }
     }
 }
 
@@ -272,7 +434,9 @@ fun GameScreenPreview() {
                 difficulty = Difficulty.EASY
             ),
             onCellTap = { _, _ -> },
-            onCellLongPress = { _, _ -> }
+            onCellLongPress = { _, _ -> },
+            onUndo = {},
+            onReset = {}
         )
     }
 }

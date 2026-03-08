@@ -19,7 +19,9 @@ data class GameUiState(
     val elapsedSeconds: Long = 0,
     val isTimerRunning: Boolean = false,
     val showCongrats: Boolean = false,
-    val errorsMade: Int = 0
+    val errorsMade: Int = 0,
+    val canUndo: Boolean = false,
+    val lastMoveWasError: Boolean = false
 )
 
 enum class Screen {
@@ -31,8 +33,12 @@ class SudokuViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(GameUiState())
     val uiState: StateFlow<GameUiState> = _uiState.asStateFlow()
 
+    private val moveHistory = mutableListOf<Array<IntArray>>()
+    private companion object { const val MAX_HISTORY = 20 }
+
     fun startNewGame(difficulty: Difficulty) {
         val game = SudokuGenerator.generate(difficulty)
+        moveHistory.clear()
         _uiState.update {
             it.copy(
                 screen = Screen.GAME,
@@ -43,9 +49,49 @@ class SudokuViewModel : ViewModel() {
                 elapsedSeconds = 0,
                 isTimerRunning = true,
                 showCongrats = false,
-                errorsMade = 0
+                errorsMade = 0,
+                canUndo = false,
+                lastMoveWasError = false
             )
         }
+    }
+
+    fun resetPuzzle() {
+        val game = _uiState.value.game ?: return
+        val resetBoard = Array(6) { game.puzzle[it].copyOf() }
+        moveHistory.clear()
+        _uiState.update {
+            it.copy(
+                game = game.copy(board = resetBoard),
+                selectedRow = -1,
+                selectedCol = -1,
+                isInputMode = false,
+                elapsedSeconds = 0,
+                isTimerRunning = true,
+                errorsMade = 0,
+                canUndo = false,
+                lastMoveWasError = false
+            )
+        }
+    }
+
+    fun undoMove() {
+        if (moveHistory.isEmpty()) return
+        val game = _uiState.value.game ?: return
+        val previousBoard = moveHistory.removeAt(moveHistory.lastIndex)
+        _uiState.update {
+            it.copy(
+                game = game.copy(board = previousBoard),
+                isInputMode = false,
+                canUndo = moveHistory.isNotEmpty(),
+                lastMoveWasError = false
+            )
+        }
+    }
+
+    private fun pushHistory(board: Array<IntArray>) {
+        moveHistory.add(Array(6) { board[it].copyOf() })
+        if (moveHistory.size > MAX_HISTORY) moveHistory.removeAt(0)
     }
 
     /**
@@ -78,6 +124,7 @@ class SudokuViewModel : ViewModel() {
 
         // If cell is empty, place 1
         if (game.board[row][col] == 0) {
+            pushHistory(game.board)
             placeNumber(row, col, 1)
         }
     }
@@ -96,11 +143,11 @@ class SudokuViewModel : ViewModel() {
         val current = game.board[row][col]
         val next = if (current >= 6) 0 else current + 1
 
+        pushHistory(game.board)
         if (next == 0) {
-            // Clear the cell
             val newBoard = game.copyBoard()
             newBoard[row][col] = 0
-            _uiState.update { it.copy(game = game.copy(board = newBoard)) }
+            _uiState.update { it.copy(game = game.copy(board = newBoard), canUndo = true, lastMoveWasError = false) }
         } else {
             placeNumber(row, col, next)
         }
@@ -117,7 +164,9 @@ class SudokuViewModel : ViewModel() {
         _uiState.update {
             it.copy(
                 game = updatedGame,
-                errorsMade = if (isError) it.errorsMade + 1 else it.errorsMade
+                errorsMade = if (isError) it.errorsMade + 1 else it.errorsMade,
+                canUndo = true,
+                lastMoveWasError = isError
             )
         }
 

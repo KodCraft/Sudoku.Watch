@@ -8,32 +8,41 @@
     <!-- Grid background -->
     <path
         android:fillColor="#F5F5F5"
-        android:pathData="M30,30h48v48h-48z" />
+        android:pathData="M26,26h56v56h-56z" />
+    <!-- Some filled cells to suggest a puzzle -->
+    <path
+        android:fillColor="#E3F2FD"
+        android:pathData="M26,26h9.33v9.33h-9.33z" />
+    <path
+        android:fillColor="#E3F2FD"
+        android:pathData="M54.33,26h9.33v9.33h-9.33z" />
+    <path
+        android:fillColor="#E3F2FD"
+        android:pathData="M35.33,44.67h9.33v9.33h-9.33z" />
+    <path
+        android:fillColor="#E3F2FD"
+        android:pathData="M63.67,54h9.33v9.33h-9.33z" />
+    <path
+        android:fillColor="#E3F2FD"
+        android:pathData="M44.67,72.67h9.33v9.33h-9.33z" />
+    <!-- Selected cell highlight (blue accent) -->
+    <path
+        android:fillColor="#90CAF9"
+        android:fillAlpha="0.7"
+        android:pathData="M44.67,44.67h9.33v9.33h-9.33z" />
     <!-- Outer border -->
     <path
         android:strokeColor="#37474F"
         android:strokeWidth="2.5"
-        android:pathData="M30,30h48v48h-48z" />
+        android:pathData="M26,26h56v56h-56z" />
     <!-- Thick box lines: vertical every 3 cols, horizontal every 2 rows -->
     <path
         android:strokeColor="#37474F"
         android:strokeWidth="2"
-        android:pathData="M46,30v48M62,30v48M30,46h48M30,62h48" />
+        android:pathData="M44.67,26v56M63.33,26v56M26,44.67h56M26,63.33h56" />
     <!-- Thin inner lines -->
     <path
         android:strokeColor="#CFD8DC"
         android:strokeWidth="0.8"
-        android:pathData="M38,30v48M54,30v48M70,30v48M30,38h48M30,54h48M30,70h48" />
-    <!-- Number "4" top-left -->
-    <path
-        android:fillColor="#263238"
-        android:pathData="M37,36l0,4l2,0l0,-6l-1.5,0l-2,2l1,1z" />
-    <!-- Number "2" center -->
-    <path
-        android:fillColor="#1565C0"
-        android:pathData="M52,52l4,0a0.8,0.8,0,0,1,0,1.6l-2.5,0l2,2a0.8,0.8,0,0,1,-1.2,1l-2.5,-2.5a0.8,0.8,0,0,1,0.2,-1.3z" />
-    <!-- Number "6" bottom-right -->
-    <path
-        android:fillColor="#263238"
-        android:pathData="M67,66a3,3,0,0,1,3,3l0,1a3,3,0,0,1,-6,0l0,-1a3,3,0,0,1,3,-3zM67,67.6a1.4,1.4,0,0,0,-1.4,1.4l0,1a1.4,1.4,0,0,0,2.8,0l0,-1a1.4,1.4,0,0,0,-1.4,-1.4z" />
+        android:pathData="M35.33,26v56M54,26v56M72.67,26v56M26,35.33h56M26,54h56M26,72.67h56" />
 </vector>
