@@ -94,7 +94,7 @@ class SudokuViewModel : ViewModel() {
         if (game.isOriginalCell(row, col)) return
 
         val current = game.board[row][col]
-        val next = if (current >= 9) 0 else current + 1
+        val next = if (current >= 6) 0 else current + 1
 
         if (next == 0) {
             // Clear the cell

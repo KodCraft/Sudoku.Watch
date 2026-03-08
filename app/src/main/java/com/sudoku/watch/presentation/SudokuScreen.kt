@@ -239,42 +239,34 @@ private fun formatTime(totalSeconds: Long): String {
 @Composable
 @Preview(device = "id:wearos_small_round", showSystemUi = true)
 fun GameScreenPreview() {
-    val sampleBoard = arrayOf(
-        intArrayOf(5, 3, 0, 0, 7, 0, 0, 0, 0),
-        intArrayOf(6, 0, 0, 1, 9, 5, 0, 0, 0),
-        intArrayOf(0, 9, 8, 0, 0, 0, 0, 6, 0),
-        intArrayOf(8, 0, 0, 0, 6, 0, 0, 0, 3),
-        intArrayOf(4, 0, 0, 8, 0, 3, 0, 0, 1),
-        intArrayOf(7, 0, 0, 0, 2, 0, 0, 0, 6),
-        intArrayOf(0, 6, 0, 0, 0, 0, 2, 8, 0),
-        intArrayOf(0, 0, 0, 4, 1, 9, 0, 0, 5),
-        intArrayOf(0, 0, 0, 0, 8, 0, 0, 7, 9)
+    val samplePuzzle = arrayOf(
+        intArrayOf(0, 2, 0, 5, 0, 4),
+        intArrayOf(0, 0, 3, 0, 2, 0),
+        intArrayOf(2, 0, 0, 0, 0, 5),
+        intArrayOf(4, 0, 0, 0, 0, 1),
+        intArrayOf(0, 5, 0, 4, 0, 0),
+        intArrayOf(3, 0, 4, 0, 5, 0)
     )
     val sampleSolution = arrayOf(
-        intArrayOf(5, 3, 4, 6, 7, 8, 9, 1, 2),
-        intArrayOf(6, 7, 2, 1, 9, 5, 3, 4, 8),
-        intArrayOf(1, 9, 8, 3, 4, 2, 5, 6, 7),
-        intArrayOf(8, 5, 9, 7, 6, 1, 4, 2, 3),
-        intArrayOf(4, 2, 6, 8, 5, 3, 7, 9, 1),
-        intArrayOf(7, 1, 3, 9, 2, 4, 8, 5, 6),
-        intArrayOf(9, 6, 1, 5, 3, 7, 2, 8, 4),
-        intArrayOf(2, 8, 7, 4, 1, 9, 6, 3, 5),
-        intArrayOf(3, 4, 5, 2, 8, 6, 1, 7, 9)
+        intArrayOf(1, 2, 6, 5, 3, 4),
+        intArrayOf(5, 4, 3, 1, 2, 6),
+        intArrayOf(2, 1, 5, 6, 4, 3),  // Note: This is simplified sample data
+        intArrayOf(4, 6, 2, 3, 1, 5),  // Note: This is simplified sample data
+        intArrayOf(6, 5, 1, 4, 3, 2),  // Note: This is simplified sample data
+        intArrayOf(3, 3, 4, 2, 5, 1)   // Note: This is simplified sample data
     )
-    // Board = puzzle with a few user entries
-    val board = Array(9) { sampleBoard[it].copyOf() }
-    board[0][2] = 4
-    board[1][1] = 7
+    val board = Array(6) { samplePuzzle[it].copyOf() }
+    board[0][0] = 1
 
     SudokuWatchTheme {
         GameScreenContent(
             state = GameUiState(
-                selectedRow = 1,
-                selectedCol = 1,
-                elapsedSeconds = 125
+                selectedRow = 0,
+                selectedCol = 0,
+                elapsedSeconds = 42
             ),
             game = SudokuGame(
-                puzzle = sampleBoard,
+                puzzle = samplePuzzle,
                 solution = sampleSolution,
                 board = board,
                 difficulty = Difficulty.EASY

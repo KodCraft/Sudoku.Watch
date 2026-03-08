@@ -28,6 +28,9 @@ import com.sudoku.watch.game.SudokuGame
 import com.sudoku.watch.presentation.theme.SudokuColors
 import kotlinx.coroutines.launch
 
+private const val GRID_SIZE = 6
+private const val BOX_ROWS = 2  // rows per box
+private const val BOX_COLS = 3  // cols per box
 private const val MAX_ZOOM = 2.5f
 private const val MIN_ZOOM = 1f
 private const val ZOOM_ANIM_MS = 300
@@ -46,7 +49,6 @@ fun SudokuGrid(
     val textMeasurer = rememberTextMeasurer()
     val scope = rememberCoroutineScope()
 
-    // Zoom & pan animation state
     val zoomAnim = remember { Animatable(MIN_ZOOM) }
     val panXAnim = remember { Animatable(0f) }
     val panYAnim = remember { Animatable(0f) }
@@ -58,19 +60,16 @@ fun SudokuGrid(
             .fillMaxWidth()
             .aspectRatio(1f)
             .clipToBounds()
-            // Gesture block 1: tap, double-tap, long-press
             .pointerInput(Unit) {
                 val canvasSize = size.width.toFloat()
                 detectTapGestures(
                     onDoubleTap = { offset ->
                         scope.launch {
                             if (zoomAnim.value > MIN_ZOOM + 0.01f) {
-                                // Zoomed in → reset to 1×
                                 launch { zoomAnim.animateTo(MIN_ZOOM, tween(ZOOM_ANIM_MS)) }
                                 launch { panXAnim.animateTo(0f, tween(ZOOM_ANIM_MS)) }
                                 launch { panYAnim.animateTo(0f, tween(ZOOM_ANIM_MS)) }
                             } else {
-                                // Zoom in centered on tap point
                                 val center = canvasSize / 2f
                                 val targetPanX = (center - offset.x) * (MAX_ZOOM - 1f)
                                 val targetPanY = (center - offset.y) * (MAX_ZOOM - 1f)
@@ -85,23 +84,22 @@ fun SudokuGrid(
                         val transformed = inverseTransform(
                             offset, zoomAnim.value, panXAnim.value, panYAnim.value, canvasSize
                         )
-                        val cellSize = canvasSize / 9f
-                        val col = (transformed.x / cellSize).toInt().coerceIn(0, 8)
-                        val row = (transformed.y / cellSize).toInt().coerceIn(0, 8)
+                        val cellSize = canvasSize / GRID_SIZE
+                        val col = (transformed.x / cellSize).toInt().coerceIn(0, GRID_SIZE - 1)
+                        val row = (transformed.y / cellSize).toInt().coerceIn(0, GRID_SIZE - 1)
                         onCellTap(row, col)
                     },
                     onLongPress = { offset ->
                         val transformed = inverseTransform(
                             offset, zoomAnim.value, panXAnim.value, panYAnim.value, canvasSize
                         )
-                        val cellSize = canvasSize / 9f
-                        val col = (transformed.x / cellSize).toInt().coerceIn(0, 8)
-                        val row = (transformed.y / cellSize).toInt().coerceIn(0, 8)
+                        val cellSize = canvasSize / GRID_SIZE
+                        val col = (transformed.x / cellSize).toInt().coerceIn(0, GRID_SIZE - 1)
+                        val row = (transformed.y / cellSize).toInt().coerceIn(0, GRID_SIZE - 1)
                         onCellLongPress(row, col)
                     }
                 )
             }
-            // Gesture block 2: drag to pan (only when zoomed)
             .pointerInput(isZoomed) {
                 if (isZoomed) {
                     val canvasSize = size.width.toFloat()
@@ -117,7 +115,6 @@ fun SudokuGrid(
                     }
                 }
             }
-            // GPU-accelerated transform
             .graphicsLayer {
                 scaleX = zoomAnim.value
                 scaleY = zoomAnim.value
@@ -125,17 +122,14 @@ fun SudokuGrid(
                 translationY = panYAnim.value
             }
     ) {
-        val cellSize = size.width / 9f
+        val cellSize = size.width / GRID_SIZE
 
-        // Draw cell backgrounds
         drawCellBackgrounds(game, selectedRow, selectedCol, isInputMode, cellSize, highlightErrors)
-
-        // Draw grid lines
         drawGridLines(cellSize)
 
         // Draw numbers
-        for (r in 0 until 9) {
-            for (c in 0 until 9) {
+        for (r in 0 until GRID_SIZE) {
+            for (c in 0 until GRID_SIZE) {
                 val value = game.board[r][c]
                 if (value != 0) {
                     val isOriginal = game.isOriginalCell(r, c)
@@ -163,23 +157,25 @@ fun SudokuGrid(
                     )
                 }
 
-                // Draw notes (small pencil marks)
+                // Draw notes — 2×3 layout for 6 notes
                 val notes = game.notes[r][c]
                 if (value == 0 && notes.isNotEmpty()) {
-                    val noteSize = cellSize / 3f
+                    val noteCols = 3
+                    val noteWidth = cellSize / noteCols
+                    val noteHeight = cellSize / 2f
                     val noteStyle = TextStyle(
-                        fontSize = (noteSize * 0.7f).toSp(),
+                        fontSize = (noteHeight * 0.6f).toSp(),
                         color = SudokuColors.NoteText
                     )
                     for (note in notes) {
-                        val nr = (note - 1) / 3
-                        val nc = (note - 1) % 3
+                        val nr = (note - 1) / noteCols
+                        val nc = (note - 1) % noteCols
                         val noteResult = textMeasurer.measure(note.toString(), noteStyle)
                         drawText(
                             textLayoutResult = noteResult,
                             topLeft = Offset(
-                                x = c * cellSize + nc * noteSize + (noteSize - noteResult.size.width) / 2f,
-                                y = r * cellSize + nr * noteSize + (noteSize - noteResult.size.height) / 2f
+                                x = c * cellSize + nc * noteWidth + (noteWidth - noteResult.size.width) / 2f,
+                                y = r * cellSize + nr * noteHeight + (noteHeight - noteResult.size.height) / 2f
                             )
                         )
                     }
@@ -191,11 +187,6 @@ fun SudokuGrid(
 
 // ─── Zoom/Pan Helpers ───
 
-/**
- * Inverse-transform a pointer position back to canvas coordinates.
- * graphicsLayer scales around center, so: screenPos = (canvasPos - center) * zoom + center + pan
- * Solving for canvasPos: canvasPos = (screenPos - center - pan) / zoom + center
- */
 private fun inverseTransform(
     pointer: Offset,
     zoom: Float,
@@ -210,9 +201,6 @@ private fun inverseTransform(
     )
 }
 
-/**
- * Clamp pan so the grid edges stay visible within the viewport.
- */
 private fun clampPan(
     panX: Float,
     panY: Float,
@@ -236,10 +224,8 @@ private fun DrawScope.drawCellBackgrounds(
     cellSize: Float,
     highlightErrors: Boolean
 ) {
-    // Background
     drawRect(color = SudokuColors.GridBackground, size = size)
 
-    // Highlight selected row/column
     if (selectedRow >= 0 && selectedCol >= 0) {
         // Row highlight
         drawRect(
@@ -253,13 +239,13 @@ private fun DrawScope.drawCellBackgrounds(
             topLeft = Offset(selectedCol * cellSize, 0f),
             size = Size(cellSize, size.height)
         )
-        // 3x3 box highlight
-        val boxRow = (selectedRow / 3) * 3
-        val boxCol = (selectedCol / 3) * 3
+        // 2×3 box highlight
+        val boxRow = (selectedRow / BOX_ROWS) * BOX_ROWS
+        val boxCol = (selectedCol / BOX_COLS) * BOX_COLS
         drawRect(
             color = SudokuColors.HighlightBox,
             topLeft = Offset(boxCol * cellSize, boxRow * cellSize),
-            size = Size(cellSize * 3, cellSize * 3)
+            size = Size(cellSize * BOX_COLS, cellSize * BOX_ROWS)
         )
         // Selected cell
         drawRect(
@@ -282,8 +268,8 @@ private fun DrawScope.drawCellBackgrounds(
     if (selectedRow >= 0 && selectedCol >= 0) {
         val selectedValue = game.board[selectedRow][selectedCol]
         if (selectedValue != 0) {
-            for (r in 0 until 9) {
-                for (c in 0 until 9) {
+            for (r in 0 until GRID_SIZE) {
+                for (c in 0 until GRID_SIZE) {
                     if (game.board[r][c] == selectedValue && !(r == selectedRow && c == selectedCol)) {
                         drawRect(
                             color = SudokuColors.SameNumber,
@@ -298,8 +284,8 @@ private fun DrawScope.drawCellBackgrounds(
 
     // Highlight error cells
     if (highlightErrors) {
-        for (r in 0 until 9) {
-            for (c in 0 until 9) {
+        for (r in 0 until GRID_SIZE) {
+            for (c in 0 until GRID_SIZE) {
                 if (game.board[r][c] != 0 && game.hasConflict(r, c)) {
                     drawRect(
                         color = SudokuColors.ErrorBackground,
@@ -313,13 +299,19 @@ private fun DrawScope.drawCellBackgrounds(
 }
 
 private fun DrawScope.drawGridLines(cellSize: Float) {
-    for (i in 0..9) {
+    // Horizontal lines: thick at box row boundaries (every 2 rows)
+    for (i in 0..GRID_SIZE) {
         val pos = i * cellSize
-        val strokeWidth = if (i % 3 == 0) 3f else 1.5f
-        val color = if (i % 3 == 0) SudokuColors.ThickLine else SudokuColors.ThinLine
+        val isThickH = i % BOX_ROWS == 0
+        val strokeH = if (isThickH) 3f else 1.5f
+        val colorH = if (isThickH) SudokuColors.ThickLine else SudokuColors.ThinLine
+        drawLine(colorH, Offset(0f, pos), Offset(size.width, pos), strokeH)
 
-        drawLine(color, Offset(0f, pos), Offset(size.width, pos), strokeWidth)
-        drawLine(color, Offset(pos, 0f), Offset(pos, size.height), strokeWidth)
+        // Vertical lines: thick at box col boundaries (every 3 cols)
+        val isThickV = i % BOX_COLS == 0
+        val strokeV = if (isThickV) 3f else 1.5f
+        val colorV = if (isThickV) SudokuColors.ThickLine else SudokuColors.ThinLine
+        drawLine(colorV, Offset(pos, 0f), Offset(pos, size.height), strokeV)
     }
 }
 
